@@ -1,0 +1,3164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitaBooks - Your Personal Library</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --text: #333;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text);
+            line-height: 1.6;
+            transition: var(--transition);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Theme Variables */
+        .theme-royal {
+            --primary: #2c3e50;
+            --secondary: #27ae60;
+            --accent: #f39c12;
+            --light: #ecf0f1;
+            --text: #2c3e50;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .theme-bloom {
+            --primary: #e84393;
+            --secondary: #fd79a8;
+            --accent: #fdcb6e;
+            --light: #ffeaa7;
+            --text: #636e72;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fab1a0 100%);
+        }
+
+        .theme-noir {
+            --primary: #2d3436;
+            --secondary: #6c5ce7;
+            --accent: #a29bfe;
+            --light: #dfe6e9;
+            --text: #dfe6e9;
+            background: linear-gradient(135deg, #2d3436 0%, #636e72 100%);
+        }
+
+        /* Extra Themes */
+        .theme-ocean {
+            --primary: #0b3954;
+            --secondary: #00a8e8;
+            --accent: #66d3fa;
+            --light: #e3f6ff;
+            --text: #0b3954;
+            background: linear-gradient(135deg, #e3f6ff 0%, #a8e1ff 100%);
+        }
+
+        .theme-sunset {
+            --primary: #4b1d3f;
+            --secondary: #ff6b6b;
+            --accent: #ffd93d;
+            --light: #fff3b0;
+            --text: #4b1d3f;
+            background: linear-gradient(135deg, #ffe3a9 0%, #ffc6c7 100%);
+        }
+
+        .theme-forest {
+            --primary: #1b4332;
+            --secondary: #52b788;
+            --accent: #95d5b2;
+            --light: #e9f5ec;
+            --text: #1b4332;
+            background: linear-gradient(135deg, #e9f5ec 0%, #c7f9cc 100%);
+        }
+
+        /* Header Styles */
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 0;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: var(--transition);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo h1 {
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .logo i {
+            color: var(--secondary);
+            font-size: 32px;
+        }
+
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+        
+        .voice-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #888;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 0 0 10px 10px;
+            box-shadow: var(--shadow);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 10;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: var(--transition);
+        }
+
+        .search-result-item:hover {
+            background-color: #f5f7fa;
+        }
+
+        .search-result-item img {
+            width: 40px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+
+        .search-result-info {
+            flex: 1;
+        }
+
+        .search-result-title {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .search-result-author {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .user-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .btn-primary {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+        .btn-secondary:hover {
+            background-color: white;
+            color: var(--primary);
+        }
+
+        /* Auth Modals */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: modalAppear 0.5s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .auth-subtitle {
+            opacity: 0.9;
+        }
+
+        .auth-body {
+            padding: 30px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .form-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+        }
+
+        .auth-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .auth-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .auth-btn-primary {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+        }
+
+        .auth-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .auth-btn-google {
+            background: white;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .auth-btn-google:hover {
+            border-color: #db4437;
+            color: #db4437;
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .auth-link {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .auth-link:hover {
+            text-decoration: underline;
+        }
+
+        .close-auth-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-auth-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .form-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .form-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .form-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            display: flex;
+            margin-top: 30px;
+            gap: 30px;
+            min-height: 70vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            transition: var(--transition);
+        }
+
+        .sidebar h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary);
+        }
+
+        .categories {
+            list-style: none;
+        }
+
+        .categories li {
+            margin-bottom: 12px;
+        }
+
+        .categories a {
+            text-decoration: none;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: var(--transition);
+        }
+
+        .categories a:hover, .categories a.active {
+            background-color: var(--light);
+            color: var(--secondary);
+        }
+
+        .categories i {
+            color: var(--secondary);
+        }
+
+        /* Books Grid Styles */
+        .books-section {
+            flex: 1;
+        }
+
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .books-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        /* Enhanced Book Cards */
+        .book-card {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .book-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            z-index: 2;
+        }
+
+        .book-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .book-cover {
+            height: 320px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .book-cover::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(transparent, rgba(0,0,0,0.1));
+        }
+
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+
+        .book-card:hover .book-cover img {
+            transform: scale(1.1);
+        }
+
+        .book-info {
+            padding: 25px;
+            position: relative;
+        }
+
+        .book-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--primary);
+            line-height: 1.3;
+        }
+
+        .book-author {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .book-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 14px;
+        }
+
+        .download-btn {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .view-details {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .view-details:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Footer Styles */
+        footer {
+            background-color: var(--primary);
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+            transition: var(--transition);
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-section h3 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            position: relative;
+            display: inline-block;
+        }
+
+        .footer-section h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: -5px;
+            width: 50px;
+            height: 3px;
+            background: var(--secondary);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            color: var(--secondary);
+            padding-left: 5px;
+        }
+
+        .footer-links a i {
+            width: 20px;
+            text-align: center;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 20px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .social-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .social-icon:hover::before {
+            left: 100%;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px) scale(1.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .social-icon.instagram:hover {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .social-icon.facebook:hover {
+            background: #3b5998;
+        }
+
+        .social-icon.twitter:hover {
+            background: #1da1f2;
+        }
+
+        .social-icon.pinterest:hover {
+            background: #bd081c;
+        }
+
+        .contact-info p {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .contact-info i {
+            color: var(--secondary);
+            width: 20px;
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+        }
+
+        /* Modal Cards for Footer Links */
+        .footer-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .footer-modal-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: modalAppear 0.5s ease;
+        }
+
+        .footer-modal-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-modal-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .close-footer-modal {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .close-footer-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        .footer-modal-body {
+            padding: 30px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .footer-modal-body h4 {
+            margin: 20px 0 10px;
+            color: var(--primary);
+            border-left: 4px solid var(--secondary);
+            padding-left: 10px;
+        }
+
+        .footer-modal-body p {
+            margin-bottom: 15px;
+        }
+
+        .footer-modal-body ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .footer-modal-body li {
+            margin-bottom: 8px;
+        }
+
+        .ceo-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .ceo-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+        }
+
+        .ceo-info h4 {
+            margin: 0 0 5px;
+            border: none;
+            padding: 0;
+        }
+
+        .ceo-info p {
+            margin: 0;
+            color: #666;
+        }
+
+        /* Category Filter Styles */
+        .category-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .category-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .no-books-message {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .no-books-message i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        /* Theme Selector */
+        .theme-selector {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: white;
+            border-radius: 50px;
+            padding: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .theme-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-royal-btn {
+            background: linear-gradient(45deg, #2c3e50, #27ae60);
+        }
+
+        .theme-bloom-btn {
+            background: linear-gradient(45deg, #e84393, #fd79a8);
+        }
+
+        .theme-noir-btn {
+            background: linear-gradient(45deg, #2d3436, #6c5ce7);
+        }
+        .theme-ocean-btn { background: linear-gradient(45deg, #0b3954, #00a8e8); }
+        .theme-sunset-btn { background: linear-gradient(45deg, #ff6b6b, #ffd93d); }
+        .theme-forest-btn { background: linear-gradient(45deg, #1b4332, #52b788); }
+
+        /* LUXURIOUS BOOK DETAILS MODAL */
+        .book-details-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .book-details-content {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border-radius: 25px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: modalAppear 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalAppear {
+            0% {
+                opacity: 0;
+                transform: scale(0.8) translateY(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .book-details-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            border-radius: 25px 25px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .book-details-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.1)"/></svg>');
+            background-size: cover;
+        }
+
+        .book-details-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .book-details-author {
+            font-size: 18px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .book-details-body {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        .book-details-cover {
+            position: relative;
+        }
+
+        .book-details-cover img {
+            width: 100%;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .book-details-cover:hover img {
+            transform: scale(1.05);
+        }
+
+        .book-details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .book-details-description {
+            line-height: 1.8;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .book-details-meta {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.03);
+            border-radius: 10px;
+        }
+
+        .meta-item i {
+            color: var(--secondary);
+            font-size: 20px;
+        }
+
+        .book-details-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .luxury-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .luxury-download {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .luxury-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .luxury-preview {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .luxury-preview:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .close-luxury-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+
+        .close-luxury-modal:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(90deg);
+        }
+
+        /* Rating Stars */
+        .rating {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .rating i {
+            color: var(--gold);
+            font-size: 16px;
+        }
+
+        /* Stats */
+        .book-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--secondary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .search-bar {
+                margin: 0;
+                width: 100%;
+            }
+
+            .book-details-body {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .book-details-actions {
+                flex-direction: column;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .social-icons {
+                justify-content: center;
+            }
+
+            .ceo-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .user-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .books-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+
+            .book-details-meta {
+                grid-template-columns: 1fr;
+            }
+
+            .auth-card {
+                width: 95%;
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: none;
+            animation: toastSlide 0.3s ease;
+        }
+
+        @keyframes toastSlide {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Loading Spinner */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Enhanced animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+
+        /* Reading progress bar */
+        .reading-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--accent));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* Admin Panel Styles */
+        .admin-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .admin-section h4 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .admin-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .admin-form .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .admin-form label {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .admin-form input,
+        .admin-form select,
+        .admin-form textarea {
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .admin-form input:focus,
+        .admin-form select:focus,
+        .admin-form textarea:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.2);
+        }
+
+        .admin-form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .admin-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .admin-btn-primary {
+            background: linear-gradient(45deg, var(--secondary), var(--accent));
+            color: white;
+        }
+
+        .admin-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .admin-btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .admin-btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .admin-btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .admin-btn-danger:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .admin-books-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .admin-book-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: var(--transition);
+        }
+
+        .admin-book-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .admin-book-item:last-child {
+            border-bottom: none;
+        }
+
+        .admin-book-info h5 {
+            margin: 0 0 5px 0;
+            color: var(--primary);
+        }
+
+        .admin-book-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .admin-book-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-form-actions {
+                flex-direction: column;
+            }
+            
+            .admin-book-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .admin-book-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body class="theme-royal">
+    <!-- Reading Progress Bar -->
+    <div class="reading-progress"></div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Header -->
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <i class="fas fa-book-open"></i>
+                <h1>VitaBooks</h1>
+            </div>
+            <div class="search-bar">
+                <div class="search-wrapper">
+                    <input type="text" id="search-input" placeholder="Search for books, authors, categories...">
+                    <button class="voice-btn"><i class="fas fa-microphone"></i></button>
+                </div>
+                <div class="search-results" id="search-results"></div>
+            </div>
+            <div class="user-actions">
+                <div class="user-info" id="user-info" style="display: none;">
+                    <div class="user-avatar" id="user-avatar">U</div>
+                    <span id="user-email">user@example.com</span>
+                    <button class="btn btn-secondary" id="logout-btn">Logout</button>
+                </div>
+                <div class="auth-buttons" id="auth-buttons">
+                    <button class="btn btn-primary" id="login-btn"><i class="fas fa-user"></i> Login</button>
+                    <button class="btn btn-primary" id="register-btn"><i class="fas fa-user-plus"></i> Register</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Auth Modals -->
+    <div class="auth-modal" id="login-modal">
+        <div class="auth-card">
+            <button class="close-auth-modal">&times;</button>
+            <div class="auth-header">
+                <h2 class="auth-title">Welcome Back</h2>
+                <p class="auth-subtitle">Sign in to your account</p>
+            </div>
+            <div class="auth-body">
+                <form class="auth-form" id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" placeholder="Enter your password" required>
+                    </div>
+                    <div class="form-message" id="login-message"></div>
+                    <div class="auth-actions">
+                        <button type="submit" class="auth-btn auth-btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Sign In
+                        </button>
+                        <button type="button" class="auth-btn auth-btn-google" id="google-login-btn">
+                            <i class="fab fa-google"></i> Sign in with Google
+                        </button>
+                    </div>
+                </form>
+                <div class="auth-footer">
+                    <p>Don't have an account? <a class="auth-link" id="show-register">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="auth-modal" id="register-modal">
+        <div class="auth-card">
+            <button class="close-auth-modal">&times;</button>
+            <div class="auth-header">
+                <h2 class="auth-title">Create Account</h2>
+                <p class="auth-subtitle">Join VitaBooks today</p>
+            </div>
+            <div class="auth-body">
+                <form class="auth-form" id="register-form">
+                    <div class="form-group">
+                        <label for="register-name">Full Name</label>
+                        <input type="text" id="register-name" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" placeholder="Create a password" required minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-confirm">Confirm Password</label>
+                        <input type="password" id="register-confirm" placeholder="Confirm your password" required>
+                    </div>
+                    <div class="form-message" id="register-message"></div>
+                    <div class="auth-actions">
+                        <button type="submit" class="auth-btn auth-btn-primary">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                        <button type="button" class="auth-btn auth-btn-google" id="google-register-btn">
+                            <i class="fab fa-google"></i> Sign up with Google
+                        </button>
+                    </div>
+                </form>
+                <div class="auth-footer">
+                    <p>Already have an account? <a class="auth-link" id="show-login">Sign in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2><i class="fas fa-list"></i> Categories</h2>
+            <ul class="categories">
+                <li><a href="#" class="category-link active" data-category="all"><i class="fas fa-th-large"></i> All Books</a></li>
+                <li><a href="#" class="category-link" data-category="Fiction"><i class="fas fa-book"></i> Fiction</a></li>
+                <li><a href="#" class="category-link" data-category="Mystery"><i class="fas fa-user-secret"></i> Mystery</a></li>
+                <li><a href="#" class="category-link" data-category="Science Fiction"><i class="fas fa-robot"></i> Science Fiction</a></li>
+                <li><a href="#" class="category-link" data-category="Fantasy"><i class="fas fa-dragon"></i> Fantasy</a></li>
+                <li><a href="#" class="category-link" data-category="Romance"><i class="fas fa-heart"></i> Romance</a></li>
+                <li><a href="#" class="category-link" data-category="Thriller"><i class="fas fa-running"></i> Thriller</a></li>
+                <li><a href="#" class="category-link" data-category="Biography"><i class="fas fa-user"></i> Biography</a></li>
+                <li><a href="#" class="category-link" data-category="History"><i class="fas fa-history"></i> History</a></li>
+                <li><a href="#" class="category-link" data-category="Science"><i class="fas fa-flask"></i> Science</a></li>
+                <li><a href="#" class="category-link" data-category="Self-Help"><i class="fas fa-hands-helping"></i> Self-Help</a></li>
+                <li><a href="#" class="category-link" data-category="Business"><i class="fas fa-chart-line"></i> Business</a></li>
+                <li><a href="#" class="category-link" data-category="Technology"><i class="fas fa-laptop-code"></i> Technology</a></li>
+            </ul>
+        </aside>
+
+        <!-- Books Section -->
+        <section class="books-section">
+            <div class="category-title">
+                <h2 class="section-title" id="current-category"><i class="fas fa-th-large"></i> All Books</h2>
+                <span class="category-badge" id="book-count">16 books</span>
+            </div>
+            <div class="books-grid" id="books-grid">
+                <!-- Book cards will be dynamically generated -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" id="contact-us-link"><i class="fas fa-envelope"></i> Contact Us</a></li>
+                        <li><a href="#" id="about-us-link"><i class="fas fa-info-circle"></i> About Us</a></li>
+                        <li><a href="#"><i class="fas fa-home"></i> Home</a></li>
+                        <li><a href="#"><i class="fas fa-book"></i> Browse Books</a></li>
+                    </ul>
+                    
+                    <h3 style="margin-top: 30px;">Follow Us</h3>
+                    <div class="social-icons">
+                        <a href="https://www.instagram.com/kai_4i2/" class="social-icon instagram" target="_blank">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.facebook.com/people/Mark-Evander/pfbid02iPR5Y1DTVhkpUttx1LrXUCJgxHN7BcnDuya1EiFoXthrN4EBb9ej18XjQ7kXrtYDl/" class="social-icon facebook" target="_blank">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="https://x.com/evander_ma26" class="social-icon twitter" target="_blank">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://fr.pinterest.com/sohaibbouk/" class="social-icon pinterest" target="_blank">
+                            <i class="fab fa-pinterest"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Help & Support</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" id="privacy-policy-link"><i class="fas fa-shield-alt"></i> Privacy Policy</a></li>
+                        <li><a href="#" id="terms-service-link"><i class="fas fa-file-contract"></i> Terms of Service</a></li>
+                        <li><a href="#" id="faq-link"><i class="fas fa-question-circle"></i> FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contact Information</h3>
+                    <div class="contact-info">
+                        <p><i class="fas fa-envelope"></i> Email: vitabooks26@gmail.com</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Address: Algeria, Algiers</p>
+                        <!--<p><i class="fas fa-phone"></i> Phone: +213 XXX XXX XXX</p>-->
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Admin</h3>
+                    <ul class="footer-links">
+                        <li><a href="#" id="admin-login-link"><i class="fas fa-user-shield"></i> Admin Panel</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2025 VitaBooks. All rights reserved. Made with <i class="fas fa-heart" style="color: #e74c3c;"></i> by Mark Evander</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-btn theme-royal-btn" data-theme="theme-royal"></button>
+        <button class="theme-btn theme-bloom-btn" data-theme="theme-bloom"></button>
+        <button class="theme-btn theme-noir-btn" data-theme="theme-noir"></button>
+        <button class="theme-btn theme-ocean-btn" data-theme="theme-ocean"></button>
+        <button class="theme-btn theme-sunset-btn" data-theme="theme-sunset"></button>
+        <button class="theme-btn theme-forest-btn" data-theme="theme-forest"></button>
+    </div>
+
+    <!-- Footer Modals -->
+    <div class="footer-modal" id="privacy-policy-modal">
+        <div class="footer-modal-content">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">Privacy Policy</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <h4>Information We Collect</h4>
+                <p>We collect information you provide directly to us, such as when you create an account, update your profile, or communicate with us.</p>
+                
+                <h4>How We Use Your Information</h4>
+                <p>We use the information we collect to provide, maintain, and improve our services, to develop new ones, and to protect VitaBooks and our users.</p>
+                
+                <h4>Information Sharing</h4>
+                <p>We do not sell, trade, or otherwise transfer to outside parties your personally identifiable information unless we provide users with advance notice.</p>
+                
+                <h4>Security</h4>
+                <p>We implement a variety of security measures to maintain the safety of your personal information when you enter, submit, or access your personal information.</p>
+                
+                <h4>Changes to This Policy</h4>
+                <p>We may change this privacy policy from time to time. If we make changes, we will notify you by revising the date at the top of the policy.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-modal" id="terms-service-modal">
+        <div class="footer-modal-content">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">Terms of Service</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <h4>Acceptance of Terms</h4>
+                <p>By accessing and using VitaBooks, you accept and agree to be bound by the terms and provision of this agreement.</p>
+                
+                <h4>Use License</h4>
+                <p>Permission is granted to temporarily download one copy of the materials (information or software) on VitaBooks for personal, non-commercial transitory viewing only.</p>
+                
+                <h4>Our Commitment</h4>
+                <p>At VitaBooks, we work tirelessly to publish high-quality books and provide an exceptional reading experience for our users. Our team carefully selects and curates each title to ensure it meets our standards of excellence.</p>
+                
+                <h4>User Responsibilities</h4>
+                <p>You are responsible for maintaining the confidentiality of your account and password and for restricting access to your computer.</p>
+                
+                <h4>Termination</h4>
+                <p>We may terminate or suspend access to our Service immediately, without prior notice or liability, for any reason whatsoever.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-modal" id="faq-modal">
+        <div class="footer-modal-content">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">Frequently Asked Questions</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <h4>How do I download books?</h4>
+                <p>Simply click on the download button next to any book. You'll be redirected to Google Drive where you can download the PDF file.</p>
+                
+                <h4>Are all books really free?</h4>
+                <p>Yes! All books on VitaBooks are completely free to download and read. We believe knowledge should be accessible to everyone.</p>
+                
+                <h4>Can I request a specific book?</h4>
+                <p>Absolutely! You can contact us with book requests, and we'll do our best to add them to our collection.</p>
+                
+                <h4>How often is new content added?</h4>
+                <p>We add new books regularly. Check back often or follow us on social media to stay updated on new additions.</p>
+                
+                <h4>Do I need to create an account?</h4>
+                <p>No account is required to browse or download books. However, creating an account allows you to save favorites and get personalized recommendations.</p>
+                
+                <h4>What formats are the books available in?</h4>
+                <p>All books are available in PDF format, which can be read on most devices including computers, tablets, and smartphones.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-modal" id="contact-us-modal">
+        <div class="footer-modal-content">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">Contact Us</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <h4>Get in Touch</h4>
+                <p>We'd love to hear from you! Whether you have a question, suggestion, or just want to say hello, feel free to reach out.</p>
+                
+                <div class="contact-info">
+                    <p><i class="fas fa-envelope"></i> Email: vitabooks26@gmail.com</p>
+                    <p><i class="fas fa-map-marker-alt"></i> Address: Algeria, Algiers</p>
+                    <p><i class="fas fa-phone"></i> Phone: +213 XXX XXX XXX</p>
+                    <p><i class="fas fa-clock"></i> Response Time: We typically respond within 24 hours</p>
+                </div>
+                
+                <h4>Send us a Message</h4>
+                <p>You can also use the form below to send us a message directly:</p>
+                
+                <form style="margin-top: 20px;">
+                    <div style="margin-bottom: 15px;">
+                        <input type="text" placeholder="Your Name" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <input type="email" placeholder="Your Email" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <textarea placeholder="Your Message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;"></textarea>
+                    </div>
+                    <button type="button" style="background: var(--secondary); color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-modal" id="about-us-modal">
+        <div class="footer-modal-content">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">About Us</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <h4>Our Mission</h4>
+                <p>VitaBooks is dedicated to making knowledge accessible to everyone. We believe that books have the power to transform lives, and we're committed to providing a vast library of free books to readers around the world.</p>
+                
+                <h4>Our Story</h4>
+                <p>Founded in 2023, VitaBooks started as a small project with a big vision: to create a platform where anyone could access quality literature without financial barriers. Today, we've grown into a comprehensive digital library with thousands of titles across numerous genres.</p>
+                
+                <h4>Meet Our CEO</h4>
+                <div class="ceo-card">
+                    <div class="ceo-avatar">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div class="ceo-info">
+                        <h4>Mark Evander</h4>
+                        <p>Founder & CEO</p>
+                        <p>Mark is passionate about literature and technology. With a background in computer science and a love for books, he founded VitaBooks to combine these two passions and make reading more accessible to people worldwide.</p>
+                    </div>
+                </div>
+                
+                <h4>Our Values</h4>
+                <ul>
+                    <li><strong>Accessibility:</strong> We believe knowledge should be free and available to all</li>
+                    <li><strong>Quality:</strong> We carefully curate our collection to ensure high standards</li>
+                    <li><strong>Innovation:</strong> We continuously improve our platform to enhance user experience</li>
+                    <li><strong>Community:</strong> We value our readers and actively seek their feedback</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login Modal -->
+    <div class="auth-modal" id="admin-login-modal">
+        <div class="auth-card">
+            <button class="close-auth-modal">&times;</button>
+            <div class="auth-header">
+                <h2 class="auth-title">Admin Access</h2>
+                <p class="auth-subtitle">Enter admin password</p>
+            </div>
+            <div class="auth-body">
+                <form class="auth-form" id="admin-login-form">
+                    <div class="form-group">
+                        <label for="admin-password">Password</label>
+                        <input type="password" id="admin-password" placeholder="Enter admin password" required>
+                    </div>
+                    <div class="form-message" id="admin-login-message"></div>
+                    <div class="auth-actions">
+                        <button type="submit" class="auth-btn auth-btn-primary">
+                            <i class="fas fa-lock"></i> Access Admin Panel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Modal -->
+    <div class="footer-modal" id="admin-panel-modal">
+        <div class="footer-modal-content" style="max-width: 900px;">
+            <div class="footer-modal-header">
+                <h3 class="footer-modal-title">Admin Panel - Book Management</h3>
+                <button class="close-footer-modal">&times;</button>
+            </div>
+            <div class="footer-modal-body">
+                <!-- Add Book Form -->
+                <div class="admin-section">
+                    <h4><i class="fas fa-plus-circle"></i> Add New Book</h4>
+                    <form id="add-book-form" class="admin-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-book-title">Title *</label>
+                                <input type="text" id="new-book-title" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-book-author">Author *</label>
+                                <input type="text" id="new-book-author" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-book-category">Category *</label>
+                                <select id="new-book-category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Fiction">Fiction</option>
+                                    <option value="Mystery">Mystery</option>
+                                    <option value="Science Fiction">Science Fiction</option>
+                                    <option value="Fantasy">Fantasy</option>
+                                    <option value="Romance">Romance</option>
+                                    <option value="Thriller">Thriller</option>
+                                    <option value="Biography">Biography</option>
+                                    <option value="History">History</option>
+                                    <option value="Science">Science</option>
+                                    <option value="Self-Help">Self-Help</option>
+                                    <option value="Business">Business</option>
+                                    <option value="Technology">Technology</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-book-year">Year</label>
+                                <input type="number" id="new-book-year" min="1000" max="2030" value="2024">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-book-pages">Pages</label>
+                                <input type="number" id="new-book-pages" min="1" value="300">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-book-language">Language</label>
+                                <input type="text" id="new-book-language" value="English">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="new-book-description">Description</label>
+                            <textarea id="new-book-description" rows="3" placeholder="Enter book description"></textarea>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="new-book-cover">Cover Image URL</label>
+                                <input type="url" id="new-book-cover" placeholder="https://example.com/cover.jpg">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-book-drive-link">Google Drive Link *</label>
+                                <input type="url" id="new-book-drive-link" required placeholder="https://drive.google.com/file/d/...">
+                            </div>
+                        </div>
+                        <div class="admin-form-actions">
+                            <button type="submit" class="admin-btn admin-btn-primary">
+                                <i class="fas fa-plus"></i> Add Book
+                            </button>
+                            <button type="button" class="admin-btn admin-btn-secondary" id="clear-book-form">
+                                <i class="fas fa-broom"></i> Clear Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Manage Books Section -->
+                <div class="admin-section">
+                    <h4><i class="fas fa-edit"></i> Manage Existing Books</h4>
+                    <div class="admin-books-list" id="admin-books-list">
+                        <!-- Books will be listed here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Luxurious Book Details Modal -->
+    <div class="book-details-modal" id="book-details-modal">
+        <div class="book-details-content">
+            <button class="close-luxury-modal">&times;</button>
+            <div class="book-details-header">
+                <h2 class="book-details-title" id="modal-book-title">Book Title</h2>
+                <p class="book-details-author" id="modal-book-author">by Author Name</p>
+            </div>
+            <div class="book-details-body">
+                <div class="book-details-cover">
+                    <img id="modal-book-cover" src="" alt="Book Cover">
+                </div>
+                <div class="book-details-info">
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span style="margin-left: 10px; color: #666;">4.5/5</span>
+                    </div>
+                    <p class="book-details-description" id="modal-book-description">
+                        This is where the book description will appear. It will provide a detailed overview of the book's content, themes, and what readers can expect.
+                    </p>
+                    <div class="book-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="modal-book-pages">350</div>
+                            <div class="stat-label">Pages</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="modal-book-year">2024</div>
+                            <div class="stat-label">Published</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="modal-book-language">EN</div>
+                            <div class="stat-label">Language</div>
+                        </div>
+                    </div>
+                    <div class="book-details-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-book"></i>
+                            <span id="modal-book-category">Fiction</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-download"></i>
+                            <span id="modal-book-downloads">1.2K Downloads</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-eye"></i>
+                            <span id="modal-book-views">5.7K Views</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-file-pdf"></i>
+                            <span id="modal-book-size">2.4 MB</span>
+                        </div>
+                    </div>
+                    <div class="book-details-actions">
+                        <button class="luxury-btn luxury-download" id="modal-download-btn">
+                            <i class="fas fa-download"></i> Download PDF
+                        </button>
+                        <button class="luxury-btn luxury-preview" id="modal-preview-btn">
+                            <i class="fas fa-eye"></i> Read Preview
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCac38213-FaBjdJac2f2DZUXgJGA0dHfM",
+            authDomain: "veitabooks.firebaseapp.com",
+            projectId: "veitabooks",
+            storageBucket: "veitabooks.firebasestorage.app",
+            messagingSenderId: "913020941371",
+            appId: "1:913020941371:web:decb4bb86ca8966af6981e",
+            measurementId: "G-T2C04WFB7Z"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Enhanced book data with Google Drive links and categories
+        const books = [
+            {
+                id: 1,
+                title: "The Silent Patient",
+                author: "Alex Michaelides",
+                category: "Mystery",
+                pages: 336,
+                year: 2019,
+                language: "English",
+                description: "A psychological thriller about a woman who shoots her husband and then stops speaking. A criminal psychotherapist becomes obsessed with uncovering her motive.",
+                cover: "https://placehold.co/400x600/2c3e50/FFFFFF?text=The+Silent+Patient",
+                downloads: "12.4K",
+                views: "45.7K",
+                size: "1.8 MB",
+                rating: 4.5,
+                driveLink: "https://drive.google.com/file/d/1ABC123def456ghi789jkl/view?usp=sharing"
+            },
+            {
+                id: 2,
+                title: "Where the Crawdads Sing",
+                author: "Delia Owens",
+                category: "Fiction",
+                pages: 384,
+                year: 2018,
+                language: "English",
+                description: "A stunning novel about an abandoned child who raises herself in the marshes of North Carolina and becomes entangled in a murder investigation.",
+                cover: "https://placehold.co/400x600/3498db/FFFFFF?text=Where+the+Crawdads+Sing",
+                downloads: "18.9K",
+                views: "67.2K",
+                size: "2.1 MB",
+                rating: 4.8,
+                driveLink: "https://drive.google.com/file/d/2DEF456ghi789jkl012mno/view?usp=sharing"
+            },
+            {
+                id: 3,
+                title: "Atomic Habits",
+                author: "James Clear",
+                category: "Self-Help",
+                pages: 320,
+                year: 2018,
+                language: "English",
+                description: "A guide to building good habits and breaking bad ones through practical strategies based on scientific research.",
+                cover: "https://placehold.co/400x600/e74c3c/FFFFFF?text=Atomic+Habits",
+                downloads: "25.3K",
+                views: "89.1K",
+                size: "1.6 MB",
+                rating: 4.7,
+                driveLink: "https://drive.google.com/file/d/3GHI789jkl012mno345pqr/view?usp=sharing"
+            },
+            {
+                id: 4,
+                title: "The Midnight Library",
+                author: "Matt Haig",
+                category: "Fiction",
+                pages: 304,
+                year: 2020,
+                language: "English",
+                description: "A novel about a library that contains books with different versions of the life you could have lived.",
+                cover: "https://placehold.co/400x600/2ecc71/FFFFFF?text=The+Midnight+Library",
+                downloads: "15.7K",
+                views: "52.3K",
+                size: "1.9 MB",
+                rating: 4.6,
+                driveLink: "https://drive.google.com/file/d/4JKL012mno345pqr678stu/view?usp=sharing"
+            },
+            {
+                id: 5,
+                title: "Educated",
+                author: "Tara Westover",
+                category: "Biography",
+                pages: 352,
+                year: 2018,
+                language: "English",
+                description: "A memoir about a young woman who grows up in a survivalist family and eventually earns a PhD from Cambridge University.",
+                cover: "https://placehold.co/400x600/9b59b6/FFFFFF?text=Educated",
+                downloads: "11.2K",
+                views: "38.6K",
+                size: "2.3 MB",
+                rating: 4.7,
+                driveLink: "https://drive.google.com/file/d/5MNO345pqr678stu901vwx/view?usp=sharing"
+            },
+            {
+                id: 6,
+                title: "The Alchemist",
+                author: "Paulo Coelho",
+                category: "Fiction",
+                pages: 208,
+                year: 1988,
+                language: "English",
+                description: "A mystical story about a shepherd boy's journey to find his personal legend and discover the treasures of life.",
+                cover: "https://placehold.co/400x600/e67e22/FFFFFF?text=The+Alchemist",
+                downloads: "32.8K",
+                views: "112.4K",
+                size: "1.4 MB",
+                rating: 4.5,
+                driveLink: "https://drive.google.com/file/d/6PQR678stu901vwx234yza/view?usp=sharing"
+            },
+            {
+                id: 7,
+                title: "Dune",
+                author: "Frank Herbert",
+                category: "Science Fiction",
+                pages: 412,
+                year: 1965,
+                language: "English",
+                description: "A epic science fiction novel set in the distant future amidst a feudal interstellar society.",
+                cover: "https://placehold.co/400x600/34495e/FFFFFF?text=Dune",
+                downloads: "9.8K",
+                views: "34.2K",
+                size: "2.7 MB",
+                rating: 4.6,
+                driveLink: "https://drive.google.com/file/d/7STU901vwx234yza567bcd/view?usp=sharing"
+            },
+            {
+                id: 8,
+                title: "Sapiens",
+                author: "Yuval Noah Harari",
+                category: "History",
+                pages: 464,
+                year: 2014,
+                language: "English",
+                description: "A brief history of humankind exploring how biology and history have defined and enhanced our understanding of what it means to be human.",
+                cover: "https://placehold.co/400x600/16a085/FFFFFF?text=Sapiens",
+                downloads: "14.6K",
+                views: "49.8K",
+                size: "2.5 MB",
+                rating: 4.7,
+                driveLink: "https://drive.google.com/file/d/8VWX234yza567bcd890efg/view?usp=sharing"
+            },
+            {
+                id: 9,
+                title: "The Hobbit",
+                author: "J.R.R. Tolkien",
+                category: "Fantasy",
+                pages: 310,
+                year: 1937,
+                language: "English",
+                description: "A fantasy novel about the adventures of hobbit Bilbo Baggins in Middle-earth.",
+                cover: "https://placehold.co/400x600/c0392b/FFFFFF?text=The+Hobbit",
+                downloads: "28.3K",
+                views: "96.7K",
+                size: "1.9 MB",
+                rating: 4.8,
+                driveLink: "https://drive.google.com/file/d/9YZA567bcd890efg123hij/view?usp=sharing"
+            },
+            {
+                id: 10,
+                title: "1984",
+                author: "George Orwell",
+                category: "Science Fiction",
+                pages: 328,
+                year: 1949,
+                language: "English",
+                description: "A dystopian social science fiction novel about totalitarian regime and mass surveillance.",
+                cover: "https://placehold.co/400x600/8e44ad/FFFFFF?text=1984",
+                downloads: "22.1K",
+                views: "78.3K",
+                size: "1.7 MB",
+                rating: 4.6,
+                driveLink: "https://drive.google.com/file/d/10BCD890efg123hij456klm/view?usp=sharing"
+            },
+            {
+                id: 11,
+                title: "Pride and Prejudice",
+                author: "Jane Austen",
+                category: "Romance",
+                pages: 432,
+                year: 1813,
+                language: "English",
+                description: "A romantic novel of manners that depicts the emotional development of protagonist Elizabeth Bennet.",
+                cover: "https://placehold.co/400x600/27ae60/FFFFFF?text=Pride+and+Prejudice",
+                downloads: "19.4K",
+                views: "65.2K",
+                size: "2.2 MB",
+                rating: 4.7,
+                driveLink: "https://drive.google.com/file/d/11EFG123hij456klm789nop/view?usp=sharing"
+            },
+            {
+                id: 12,
+                title: "To Kill a Mockingbird",
+                author: "Harper Lee",
+                category: "Fiction",
+                pages: 324,
+                year: 1960,
+                language: "English",
+                description: "A novel about racial inequality and moral growth seen through the eyes of a young girl in Alabama.",
+                cover: "https://placehold.co/400x600/2980b9/FFFFFF?text=To+Kill+a+Mockingbird",
+                downloads: "16.8K",
+                views: "58.9K",
+                size: "1.8 MB",
+                rating: 4.8,
+                driveLink: "https://drive.google.com/file/d/12HIJ456klm789nop012qrs/view?usp=sharing"
+            },
+            {
+                id: 13,
+                title: "The Da Vinci Code",
+                author: "Dan Brown",
+                category: "Thriller",
+                pages: 454,
+                year: 2003,
+                language: "English",
+                description: "A mystery thriller novel that follows symbologist Robert Langdon as he investigates a murder in the Louvre Museum.",
+                cover: "https://placehold.co/400x600/8e44ad/FFFFFF?text=The+Da+Vinci+Code",
+                downloads: "24.5K",
+                views: "78.9K",
+                size: "2.3 MB",
+                rating: 4.2,
+                driveLink: "https://drive.google.com/file/d/13KLM789nop012qrs345tuv/view?usp=sharing"
+            },
+            {
+                id: 14,
+                title: "Thinking, Fast and Slow",
+                author: "Daniel Kahneman",
+                category: "Psychology",
+                pages: 499,
+                year: 2011,
+                language: "English",
+                description: "A book that summarizes research that Kahneman conducted over decades, often in collaboration with Amos Tversky.",
+                cover: "https://placehold.co/400x600/16a085/FFFFFF?text=Thinking+Fast+and+Slow",
+                downloads: "15.3K",
+                views: "42.7K",
+                size: "2.6 MB",
+                rating: 4.6,
+                driveLink: "https://drive.google.com/file/d/14NOP012qrs345tuv678wx/view?usp=sharing"
+            },
+            {
+                id: 15,
+                title: "The Lean Startup",
+                author: "Eric Ries",
+                category: "Business",
+                pages: 336,
+                year: 2011,
+                language: "English",
+                description: "A book about how to create and manage successful startups in an age when companies need to innovate more than ever.",
+                cover: "https://placehold.co/400x600/e67e22/FFFFFF?text=The+Lean+Startup",
+                downloads: "18.2K",
+                views: "51.4K",
+                size: "1.9 MB",
+                rating: 4.5,
+                driveLink: "https://drive.google.com/file/d/15QRS345tuv678wx901yz/view?usp=sharing"
+            },
+            {
+                id: 16,
+                title: "The Innovator's Dilemma",
+                author: "Clayton Christensen",
+                category: "Business",
+                pages: 286,
+                year: 1997,
+                language: "English",
+                description: "A business book that explains why large companies can fail despite doing everything right.",
+                cover: "https://placehold.co/400x600/2c3e50/FFFFFF?text=Innovator%27s+Dilemma",
+                downloads: "12.7K",
+                views: "38.2K",
+                size: "1.7 MB",
+                rating: 4.4,
+                driveLink: "https://drive.google.com/file/d/16TUV678wx901yz234ab/view?usp=sharing"
+            }
+        ];
+
+        // DOM Elements
+        const booksGrid = document.getElementById('books-grid');
+        const bookDetailsModal = document.getElementById('book-details-modal');
+        const closeLuxuryModal = document.querySelector('.close-luxury-modal');
+        const modalDownloadBtn = document.getElementById('modal-download-btn');
+        const modalPreviewBtn = document.getElementById('modal-preview-btn');
+        const toast = document.getElementById('toast');
+        const backToTopBtn = document.querySelector('.back-to-top');
+        const readingProgress = document.querySelector('.reading-progress');
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const categoryLinks = document.querySelectorAll('.category-link');
+        const currentCategoryTitle = document.getElementById('current-category');
+        const bookCountBadge = document.getElementById('book-count');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
+        // Auth DOM Elements
+        const loginModal = document.getElementById('login-modal');
+        const registerModal = document.getElementById('register-modal');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfo = document.getElementById('user-info');
+        const authButtons = document.getElementById('auth-buttons');
+        const userAvatar = document.getElementById('user-avatar');
+        const userEmail = document.getElementById('user-email');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showRegister = document.getElementById('show-register');
+        const showLogin = document.getElementById('show-login');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const googleRegisterBtn = document.getElementById('google-register-btn');
+        const loginMessage = document.getElementById('login-message');
+        const registerMessage = document.getElementById('register-message');
+        const closeAuthModals = document.querySelectorAll('.close-auth-modal');
+
+        // Footer modal elements
+        const privacyPolicyModal = document.getElementById('privacy-policy-modal');
+        const termsServiceModal = document.getElementById('terms-service-modal');
+        const faqModal = document.getElementById('faq-modal');
+        const contactUsModal = document.getElementById('contact-us-modal');
+        const aboutUsModal = document.getElementById('about-us-modal');
+        
+        const privacyPolicyLink = document.getElementById('privacy-policy-link');
+        const termsServiceLink = document.getElementById('terms-service-link');
+        const faqLink = document.getElementById('faq-link');
+        const contactUsLink = document.getElementById('contact-us-link');
+        const aboutUsLink = document.getElementById('about-us-link');
+        
+        const closeFooterModals = document.querySelectorAll('.close-footer-modal');
+
+        // Admin DOM Elements
+        const adminLoginLink = document.getElementById('admin-login-link');
+        const adminLoginModal = document.getElementById('admin-login-modal');
+        const adminLoginForm = document.getElementById('admin-login-form');
+        const adminPasswordInput = document.getElementById('admin-password');
+        const adminLoginMessage = document.getElementById('admin-login-message');
+        const adminPanelModal = document.getElementById('admin-panel-modal');
+        const adminBooksList = document.getElementById('admin-books-list');
+        const addBookForm = document.getElementById('add-book-form');
+        const clearBookFormBtn = document.getElementById('clear-book-form');
+
+        // Admin password
+        const ADMIN_PASSWORD = "AMIRA#BOUK2005";
+
+        // State variables
+        let currentCategory = 'all';
+        let currentSearchTerm = '';
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            generateBookCards(books);
+            setupEventListeners();
+            checkAuthState();
+            initAdmin();
+            
+            // Show initial animation
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
+        });
+
+        // Generate enhanced book cards
+        function generateBookCards(booksToShow) {
+            booksGrid.innerHTML = '';
+            
+            if (booksToShow.length === 0) {
+                booksGrid.innerHTML = `
+                    <div class="no-books-message">
+                        <i class="fas fa-book-open"></i>
+                        <h3>No books found</h3>
+                        <p>Try selecting a different category or search term</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            booksToShow.forEach(book => {
+                const bookCard = document.createElement('div');
+                bookCard.className = 'book-card fade-in';
+                bookCard.innerHTML = `
+                    <div class="book-cover">
+                        <img src="${book.cover}" alt="${book.title}" onerror="this.src='https://placehold.co/400x600/2c3e50/FFFFFF?text=Book+Cover'">
+                    </div>
+                    <div class="book-info">
+                        <h3 class="book-title">${book.title}</h3>
+                        <p class="book-author">by ${book.author}</p>
+                        <div class="book-actions">
+                            <button class="action-btn download-btn" data-id="${book.id}">
+                                <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="action-btn view-details" data-id="${book.id}">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+                booksGrid.appendChild(bookCard);
+            });
+            
+            // Update book count
+            bookCountBadge.textContent = `${booksToShow.length} book${booksToShow.length !== 1 ? 's' : ''}`;
+        }
+
+        // Filter books by category and search term
+        function filterBooks() {
+            let filteredBooks = books;
+            
+            // Filter by category
+            if (currentCategory !== 'all') {
+                filteredBooks = filteredBooks.filter(book => book.category === currentCategory);
+            }
+            
+            // Filter by search term
+            if (currentSearchTerm) {
+                const searchTerm = currentSearchTerm.toLowerCase();
+                filteredBooks = filteredBooks.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm) || 
+                    book.author.toLowerCase().includes(searchTerm) ||
+                    book.category.toLowerCase().includes(searchTerm) ||
+                    book.description.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            return filteredBooks;
+        }
+
+        // Update book display based on current filters
+        function updateBookDisplay() {
+            const filteredBooks = filterBooks();
+            generateBookCards(filteredBooks);
+        }
+
+        // Smart search functionality
+        function performSearch(searchTerm) {
+            currentSearchTerm = searchTerm;
+            
+            if (searchTerm.length > 0) {
+                const searchResultsList = books.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    book.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    book.category.toLowerCase().includes(searchTerm.toLowerCase())
+                ).slice(0, 5); // Limit to 5 results
+                
+                displaySearchResults(searchResultsList);
+            } else {
+                hideSearchResults();
+            }
+            
+            updateBookDisplay();
+        }
+
+        // Display search results dropdown
+        function displaySearchResults(results) {
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+            } else {
+                searchResults.innerHTML = results.map(book => `
+                    <div class="search-result-item" data-id="${book.id}">
+                        <img src="${book.cover}" alt="${book.title}">
+                        <div class="search-result-info">
+                            <div class="search-result-title">${book.title}</div>
+                            <div class="search-result-author">by ${book.author}</div>
+                            <div class="search-result-category">${book.category}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            searchResults.style.display = 'block';
+        }
+
+        // Hide search results dropdown
+        function hideSearchResults() {
+            searchResults.style.display = 'none';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Book action buttons
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('download-btn') || e.target.closest('.download-btn')) {
+                    const button = e.target.classList.contains('download-btn') ? e.target : e.target.closest('.download-btn');
+                    const bookId = button.getAttribute('data-id');
+                    downloadBook(bookId);
+                }
+                
+                if (e.target.classList.contains('view-details') || e.target.closest('.view-details')) {
+                    const button = e.target.classList.contains('view-details') ? e.target : e.target.closest('.view-details');
+                    const bookId = button.getAttribute('data-id');
+                    showBookDetails(bookId);
+                }
+            });
+
+            // Category filter links
+            categoryLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Update active state
+                    categoryLinks.forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update current category
+                    currentCategory = this.getAttribute('data-category');
+                    
+                    // Update category title
+                    const categoryIcon = this.querySelector('i').className;
+                    const categoryText = this.textContent.trim();
+                    currentCategoryTitle.innerHTML = `<i class="${categoryIcon}"></i> ${categoryText}`;
+                    
+                    // Update book display
+                    updateBookDisplay();
+                });
+            });
+
+            // Search functionality
+            searchInput.addEventListener('input', function() {
+                performSearch(this.value);
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.search-bar')) {
+                    hideSearchResults();
+                }
+            });
+            
+            // Handle search result clicks
+            searchResults.addEventListener('click', function(e) {
+                const resultItem = e.target.closest('.search-result-item');
+                if (resultItem) {
+                    const bookId = resultItem.getAttribute('data-id');
+                    showBookDetails(bookId);
+                    hideSearchResults();
+                    searchInput.value = '';
+                    currentSearchTerm = '';
+                    updateBookDisplay();
+                }
+            });
+
+            // Modal controls
+            closeLuxuryModal.addEventListener('click', closeBookDetails);
+            bookDetailsModal.addEventListener('click', function(e) {
+                if (e.target === bookDetailsModal) {
+                    closeBookDetails();
+                }
+            });
+
+            // Modal action buttons
+            modalDownloadBtn.addEventListener('click', function() {
+                const bookId = this.getAttribute('data-id');
+                downloadBook(bookId);
+                closeBookDetails();
+            });
+
+            modalPreviewBtn.addEventListener('click', function() {
+                const bookId = this.getAttribute('data-id');
+                showToast('Opening book preview...', 'info');
+                closeBookDetails();
+            });
+
+            // Theme switching
+            themeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const theme = this.getAttribute('data-theme');
+                    document.body.className = theme;
+                    showToast(`Theme changed to ${theme.replace('theme-', '')}`, 'success');
+                });
+            });
+
+            // Scroll events
+            window.addEventListener('scroll', handleScroll);
+            backToTopBtn.addEventListener('click', scrollToTop);
+
+            // Keyboard events
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeBookDetails();
+                    hideSearchResults();
+                    closeAllAuthModals();
+                    closeAllFooterModals();
+                }
+            });
+
+            // Auth event listeners
+            loginBtn.addEventListener('click', () => showAuthModal('login'));
+            registerBtn.addEventListener('click', () => showAuthModal('register'));
+            logoutBtn.addEventListener('click', handleLogout);
+            showRegister.addEventListener('click', () => switchAuthModal('register'));
+            showLogin.addEventListener('click', () => switchAuthModal('login'));
+            
+            // Auth form submissions
+            loginForm.addEventListener('submit', handleLogin);
+            registerForm.addEventListener('submit', handleRegister);
+            
+            // Google auth
+            googleLoginBtn.addEventListener('click', () => handleGoogleAuth('login'));
+            googleRegisterBtn.addEventListener('click', () => handleGoogleAuth('register'));
+            
+            // Close auth modals
+            closeAuthModals.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.auth-modal').style.display = 'none';
+                });
+            });
+            
+            // Close auth modals when clicking outside
+            document.querySelectorAll('.auth-modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+
+            // Footer modal events
+            privacyPolicyLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                privacyPolicyModal.style.display = 'flex';
+            });
+            
+            termsServiceLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                termsServiceModal.style.display = 'flex';
+            });
+            
+            faqLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                faqModal.style.display = 'flex';
+            });
+            
+            contactUsLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                contactUsModal.style.display = 'flex';
+            });
+            
+            aboutUsLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                aboutUsModal.style.display = 'flex';
+            });
+            
+            // Close footer modals
+            closeFooterModals.forEach(button => {
+                button.addEventListener('click', function() {
+                    this.closest('.footer-modal').style.display = 'none';
+                });
+            });
+            
+            // Close footer modals when clicking outside
+            document.querySelectorAll('.footer-modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        // Close all auth modals
+        function closeAllAuthModals() {
+            document.querySelectorAll('.auth-modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Close all footer modals
+        function closeAllFooterModals() {
+            document.querySelectorAll('.footer-modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        // Show auth modal
+        function showAuthModal(type) {
+            closeAllAuthModals();
+            if (type === 'login') {
+                loginModal.style.display = 'flex';
+            } else {
+                registerModal.style.display = 'flex';
+            }
+        }
+
+        // Switch between login and register modals
+        function switchAuthModal(type) {
+            closeAllAuthModals();
+            showAuthModal(type);
+        }
+
+        // Check authentication state
+        function checkAuthState() {
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // User is signed in
+                    userInfo.style.display = 'flex';
+                    authButtons.style.display = 'none';
+                    userEmail.textContent = user.email;
+                    userAvatar.textContent = user.email.charAt(0).toUpperCase();
+                    showToast(`Welcome back, ${user.email}!`, 'success');
+                } else {
+                    // User is signed out
+                    userInfo.style.display = 'none';
+                    authButtons.style.display = 'flex';
+                }
+            });
+        }
+
+        // Handle login
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            loginMessage.style.display = 'none';
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    loginModal.style.display = 'none';
+                    loginForm.reset();
+                })
+                .catch((error) => {
+                    // Handle errors
+                    loginMessage.textContent = error.message;
+                    loginMessage.className = 'form-message error';
+                    loginMessage.style.display = 'block';
+                });
+        }
+
+        // Handle register
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm').value;
+            
+            registerMessage.style.display = 'none';
+            
+            // Check if passwords match
+            if (password !== confirmPassword) {
+                registerMessage.textContent = 'Passwords do not match';
+                registerMessage.className = 'form-message error';
+                registerMessage.style.display = 'block';
+                return;
+            }
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed up successfully
+                    registerModal.style.display = 'none';
+                    registerForm.reset();
+                })
+                .catch((error) => {
+                    // Handle errors
+                    registerMessage.textContent = error.message;
+                    registerMessage.className = 'form-message error';
+                    registerMessage.style.display = 'block';
+                });
+        }
+
+        // Handle Google authentication
+        function handleGoogleAuth(type) {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            
+            if (type === 'login') {
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        // Signed in successfully
+                        loginModal.style.display = 'none';
+                    })
+                    .catch((error) => {
+                        // Handle errors
+                        loginMessage.textContent = error.message;
+                        loginMessage.className = 'form-message error';
+                        loginMessage.style.display = 'block';
+                    });
+            } else {
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        // Signed up successfully
+                        registerModal.style.display = 'none';
+                    })
+                    .catch((error) => {
+                        // Handle errors
+                        registerMessage.textContent = error.message;
+                        registerMessage.className = 'form-message error';
+                        registerMessage.style.display = 'block';
+                    });
+            }
+        }
+
+        // Handle logout
+        function handleLogout() {
+            auth.signOut()
+                .then(() => {
+                    showToast('You have been logged out', 'info');
+                })
+                .catch((error) => {
+                    showToast('Error logging out', 'error');
+                });
+        }
+
+        // Show luxurious book details
+        function showBookDetails(bookId) {
+            const book = books.find(b => b.id == bookId);
+            if (!book) return;
+
+            // Update modal content
+            document.getElementById('modal-book-title').textContent = book.title;
+            document.getElementById('modal-book-author').textContent = `by ${book.author}`;
+            document.getElementById('modal-book-cover').src = book.cover;
+            document.getElementById('modal-book-description').textContent = book.description;
+            document.getElementById('modal-book-pages').textContent = book.pages;
+            document.getElementById('modal-book-year').textContent = book.year;
+            document.getElementById('modal-book-language').textContent = book.language;
+            document.getElementById('modal-book-category').textContent = book.category;
+            document.getElementById('modal-book-downloads').textContent = `${book.downloads} Downloads`;
+            document.getElementById('modal-book-views').textContent = `${book.views} Views`;
+            document.getElementById('modal-book-size').textContent = book.size;
+
+            // Set data attributes for action buttons
+            modalDownloadBtn.setAttribute('data-id', book.id);
+            modalPreviewBtn.setAttribute('data-id', book.id);
+            
+            // Update download button text if drive link exists
+            if (book.driveLink) {
+                modalDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Download from Google Drive';
+                modalDownloadBtn.disabled = false;
+                modalDownloadBtn.style.opacity = '1';
+            } else {
+                modalDownloadBtn.innerHTML = '<i class="fas fa-download"></i> Download (Link Coming Soon)';
+                modalDownloadBtn.disabled = true;
+                modalDownloadBtn.style.opacity = '0.6';
+            }
+
+            // Show modal
+            bookDetailsModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Close book details modal
+        function closeBookDetails() {
+            bookDetailsModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Download book function - redirect to Google Drive
+        function downloadBook(bookId) {
+            const book = books.find(b => b.id == bookId);
+            if (book) {
+                if (book.driveLink) {
+                    // Open Google Drive link in a new tab
+                    window.open(book.driveLink, '_blank');
+                    showToast(`Opening "${book.title}" download link...`, 'success');
+                } else {
+                    showToast(`Download link for "${book.title}" is not available yet.`, 'error');
+                }
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            toast.textContent = message;
+            toast.style.display = 'block';
+            
+            // Set background based on type
+            const theme = document.body.className;
+            if (type === 'success') {
+                toast.style.background = 'linear-gradient(45deg, #27ae60, #2ecc71)';
+            } else if (type === 'error') {
+                toast.style.background = 'linear-gradient(45deg, #e74c3c, #c0392b)';
+            } else {
+                toast.style.background = 'linear-gradient(45deg, var(--secondary), var(--accent))';
+            }
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle scroll events
+        function handleScroll() {
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset;
+            const scrollPercent = (scrollTop / (docHeight - winHeight)) * 100;
+            
+            readingProgress.style.width = scrollPercent + '%';
+            
+            if (scrollTop > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        }
+
+        // Scroll to top
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Admin functionality
+        function initAdmin() {
+            setupAdminEventListeners();
+            renderAdminBooksList();
+        }
+
+        // Setup admin event listeners
+        function setupAdminEventListeners() {
+            // Admin login link
+            adminLoginLink.addEventListener('click', function(e) {
+                e.preventDefault();
+                adminLoginModal.style.display = 'flex';
+            });
+
+            // Admin login form
+            adminLoginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleAdminLogin();
+            });
+
+            // Add book form
+            addBookForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleAddBook();
+            });
+
+            // Clear book form
+            clearBookFormBtn.addEventListener('click', function() {
+                addBookForm.reset();
+                showToast('Form cleared', 'info');
+            });
+        }
+
+        // Handle admin login
+        function handleAdminLogin() {
+            const password = adminPasswordInput.value.trim();
+            
+            adminLoginMessage.style.display = 'none';
+            
+            if (password === ADMIN_PASSWORD) {
+                adminLoginModal.style.display = 'none';
+                adminPanelModal.style.display = 'flex';
+                adminPasswordInput.value = '';
+                showToast('Admin access granted!', 'success');
+            } else {
+                adminLoginMessage.textContent = 'Invalid admin password';
+                adminLoginMessage.className = 'form-message error';
+                adminLoginMessage.style.display = 'block';
+            }
+        }
+
+        // Handle add book
+        function handleAddBook() {
+            const newBook = {
+                id: Date.now(), // Use timestamp as unique ID
+                title: document.getElementById('new-book-title').value.trim(),
+                author: document.getElementById('new-book-author').value.trim(),
+                category: document.getElementById('new-book-category').value,
+                pages: parseInt(document.getElementById('new-book-pages').value) || 300,
+                year: parseInt(document.getElementById('new-book-year').value) || 2024,
+                language: document.getElementById('new-book-language').value.trim() || 'English',
+                description: document.getElementById('new-book-description').value.trim() || 'No description available.',
+                cover: document.getElementById('new-book-cover').value.trim() || `https://placehold.co/400x600/2c3e50/FFFFFF?text=${encodeURIComponent(document.getElementById('new-book-title').value.trim())}`,
+                downloads: "1.2K",
+                views: "5.7K",
+                size: "2.4 MB",
+                rating: 4.5,
+                driveLink: document.getElementById('new-book-drive-link').value.trim()
+            };
+
+            // Validate required fields
+            if (!newBook.title || !newBook.author || !newBook.category || !newBook.driveLink) {
+                showToast('Please fill all required fields (Title, Author, Category, Drive Link)', 'error');
+                return;
+            }
+
+            // Add book to the array
+            books.push(newBook);
+            
+            // Update display
+            updateBookDisplay();
+            
+            // Update admin books list
+            renderAdminBooksList();
+            
+            // Reset form
+            addBookForm.reset();
+            
+            showToast(`Book "${newBook.title}" added successfully!`, 'success');
+        }
+
+        // Handle delete book
+        function handleDeleteBook(bookId) {
+            const bookIndex = books.findIndex(book => book.id == bookId);
+            
+            if (bookIndex !== -1) {
+                const bookTitle = books[bookIndex].title;
+                books.splice(bookIndex, 1);
+                
+                // Update display
+                updateBookDisplay();
+                
+                // Update admin books list
+                renderAdminBooksList();
+                
+                showToast(`Book "${bookTitle}" deleted successfully!`, 'success');
+            }
+        }
+
+        // Render admin books list
+        function renderAdminBooksList() {
+            adminBooksList.innerHTML = '';
+            
+            if (books.length === 0) {
+                adminBooksList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No books available</p>';
+                return;
+            }
+            
+            books.forEach(book => {
+                const bookItem = document.createElement('div');
+                bookItem.className = 'admin-book-item';
+                bookItem.innerHTML = `
+                    <div class="admin-book-info">
+                        <h5>${book.title}</h5>
+                        <p>by ${book.author} | ${book.category} | ${book.year}</p>
+                    </div>
+                    <div class="admin-book-actions">
+                        <button class="admin-btn admin-btn-danger delete-book-btn" data-id="${book.id}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                adminBooksList.appendChild(bookItem);
+            });
+
+            // Add event listeners to delete buttons
+            document.querySelectorAll('.delete-book-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const bookId = this.getAttribute('data-id');
+                    if (confirm('Are you sure you want to delete this book?')) {
+                        handleDeleteBook(bookId);
+                    }
+                });
+            });
+        }
+
+        console.log('VitaBooks with Admin Panel is ready!');
+    </script>
+</body>
+</html>
